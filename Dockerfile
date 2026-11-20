@@ -12,7 +12,7 @@ COPY apps/api/package.json apps/api/
 COPY apps/checker/package.json apps/checker/
 COPY apps/scraper/package.json apps/scraper/
 COPY apps/web/package.json apps/web/
-RUN npm ci --no-audit --no-fund -w @price-watch/contracts -w @price-watch/platform -w @price-watch/${APP} --include-workspace-root
+RUN npm ci --no-audit --no-fund --ignore-scripts -w @price-watch/contracts -w @price-watch/platform -w @price-watch/${APP} --include-workspace-root
 COPY libs libs
 COPY apps/${APP} apps/${APP}
 RUN npm run build -w @price-watch/contracts -w @price-watch/platform -w @price-watch/${APP}
@@ -24,14 +24,16 @@ COPY --from=build /repo/package.json /repo/package-lock.json ./
 COPY --from=build /repo/libs/contracts/package.json libs/contracts/
 COPY --from=build /repo/libs/platform/package.json libs/platform/
 COPY --from=build /repo/apps apps
-RUN npm ci --no-audit --no-fund --omit=dev -w @price-watch/contracts -w @price-watch/platform -w @price-watch/${APP} \
-      --include-workspace-root=false
+RUN npm ci --no-audit --no-fund --ignore-scripts --omit=dev -w @price-watch/contracts -w @price-watch/platform -w @price-watch/${APP} \
+      --include-workspace-root=false \
+ && mkdir -p apps/${APP}/node_modules
 
 # The real scraper library, pinned: cloned from its public repo at a fixed commit and built (it is not on npm).
 FROM ${NODE_IMAGE} AS scraper-lib
+ARG SCRAPER_LIB_COMMIT=f7bfb67f02be5466ab91cc337386129c5ab71b89
 RUN apk add --no-cache git
-WORKDIR /lib
-RUN git clone https://github.com/ahmedoshelmy/egypt-price-scraper.git . && git checkout 1ed6b07 \
+WORKDIR /opt/egypt-price-scraper
+RUN git clone https://github.com/ahmedoshelmy/egypt-price-scraper.git . && git checkout ${SCRAPER_LIB_COMMIT} \
  && npm ci --no-audit --no-fund && npm run build && npm prune --omit=dev
 
 FROM ${NODE_IMAGE} AS service
@@ -45,11 +47,13 @@ COPY --from=build /repo/libs/contracts/proto libs/contracts/proto
 COPY --from=build /repo/libs/platform/package.json libs/platform/
 COPY --from=build /repo/libs/platform/dist libs/platform/dist
 COPY --from=build /repo/apps/${APP}/package.json apps/${APP}/
+# Packages npm could not hoist (version clashes) stay next to their workspace.
+COPY --from=deps /repo/apps/${APP}/node_modules apps/${APP}/node_modules
 COPY --from=build /repo/apps/${APP}/dist apps/${APP}/dist
 WORKDIR /repo/apps/${APP}
 USER node
 CMD ["node", "dist/main.js"]
 
 FROM service AS scraper
-COPY --from=scraper-lib /lib/package.json /repo/node_modules/egypt-price-scraper/package.json
-COPY --from=scraper-lib /lib/dist /repo/node_modules/egypt-price-scraper/dist
+COPY --from=scraper-lib /opt/egypt-price-scraper/package.json /repo/node_modules/egypt-price-scraper/package.json
+COPY --from=scraper-lib /opt/egypt-price-scraper/dist /repo/node_modules/egypt-price-scraper/dist

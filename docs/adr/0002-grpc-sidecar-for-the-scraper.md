@@ -23,7 +23,7 @@ Options:
 
 Option 3 with **gRPC**: `libs/contracts/proto/scraper.proto` defines `Scraper.Search(query, shops) -> stream ShopResult`
 and `Health`. The `apps/scraper` NestJS microservice implements it; the checker's `GrpcScraperClient` is the only
-caller. The sidecar image clones the public library at a pinned commit (`1ed6b07`) and builds it, since it is
+caller. The sidecar image clones the public library at a pinned commit (`SCRAPER_LIB_COMMIT` build arg) and builds it, since it is
 not published to npm. `SCRAPER_MODE=fake` (the default) serves a deterministic catalog for CI, tests and demos.
 
 Why gRPC over REST:
