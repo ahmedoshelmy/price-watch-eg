@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { Inject, Logger, Module, type OnApplicationShutdown } from '@nestjs/common'
+import { Inject, Injectable, Logger, Module, type OnApplicationShutdown } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { RabbitBus } from '@price-watch/platform'
 import { API_CONFIG, loadConfig, type ApiConfig } from './config'
@@ -19,6 +19,7 @@ import { PricesGateway } from './watches/presentation/prices.gateway'
 import { WatchesController } from './watches/presentation/watches.controller'
 
 /** Closes the broker connection and the pool after Nest stops the other providers. */
+@Injectable()
 class Connections implements OnApplicationShutdown {
   constructor(
     @Inject(DATA_SOURCE) private readonly db: DataSource,

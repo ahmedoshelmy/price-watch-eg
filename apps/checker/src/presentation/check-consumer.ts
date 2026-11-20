@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
+} from '@nestjs/common'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { RabbitBus } from '@price-watch/platform'
 import { RunCheck } from '../application/run-check'
@@ -25,10 +31,14 @@ export class CheckWorker implements OnApplicationBootstrap, OnApplicationShutdow
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    await this.bus.subscribe(['check.requested'], async (request) => void (await this.runCheck.execute(request)), {
-      queue: CHECKS_QUEUE,
-      prefetch: this.config.concurrency,
-    })
+    await this.bus.subscribe(
+      ['check.requested'],
+      async (request) => void (await this.runCheck.execute(request)),
+      {
+        queue: CHECKS_QUEUE,
+        prefetch: this.config.concurrency,
+      },
+    )
     const timer = setInterval(() => {
       this.scheduleChecks.execute().catch((err: unknown) => {
         this.logger.warn(`Scheduling pass failed: ${err instanceof Error ? err.message : String(err)}`)

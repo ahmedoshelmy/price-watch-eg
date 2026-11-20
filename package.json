@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "npm run build -w @price-watch/contracts -w @price-watch/platform && npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build -w @price-watch/contracts -w @price-watch/platform && npm run typecheck --workspaces --if-present && tsc -p tests/tsconfig.json",
     "lint": "eslint . && prettier --check . && npm run lint -w @price-watch/web",
     "format": "prettier --write .",
     "test": "npm run test:unit && npm run test:web",

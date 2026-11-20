@@ -1,7 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { NotFoundError } from '../domain/errors'
 import { Watch, type WatchSnapshot } from '../domain/watch'
-import { CLOCK, ID_GENERATOR, UNIT_OF_WORK, type Clock, type IdGenerator, type Transaction, type UnitOfWork } from './ports'
+import {
+  CLOCK,
+  ID_GENERATOR,
+  UNIT_OF_WORK,
+  type Clock,
+  type IdGenerator,
+  type Transaction,
+  type UnitOfWork,
+} from './ports'
 
 /** Write-side use cases for watches. Each runs in one transaction together with the events it emits. */
 @Injectable()

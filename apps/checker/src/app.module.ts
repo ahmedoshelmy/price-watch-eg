@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { Logger, Module, type OnApplicationShutdown } from '@nestjs/common'
+import { Injectable, Logger, Module, type OnApplicationShutdown } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
 import { RabbitBus } from '@price-watch/platform'
 import { CLOCK, DUE_WATCH_SOURCE, EVENT_PUBLISHER, ID_GENERATOR, SCRAPER_CLIENT } from './application/ports'
@@ -11,6 +11,7 @@ import { HttpDueWatchSource } from './infrastructure/http-due-watch-source'
 import { CheckWorker } from './presentation/check-consumer'
 import { HealthController } from './presentation/health.controller'
 
+@Injectable()
 class BusCloser implements OnApplicationShutdown {
   constructor(private readonly bus: RabbitBus) {}
 

@@ -1,10 +1,32 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, DefaultValuePipe } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  DefaultValuePipe,
+} from '@nestjs/common'
 import { CLOCK, WATCH_QUERIES, type Clock } from '../application/ports'
 import type { WatchQueries } from '../application/read-models'
 import { WatchCommands } from '../application/watch-commands'
 import { NotFoundError } from '../domain/errors'
 import { egpToPiastres } from '../domain/money'
-import { CreateWatchDto, UpdateWatchDto, historyJson, snapshotJson, watchJson, type HistoryPointJson, type WatchJson } from './dto'
+import {
+  CreateWatchDto,
+  UpdateWatchDto,
+  historyJson,
+  snapshotJson,
+  watchJson,
+  type HistoryPointJson,
+  type WatchJson,
+} from './dto'
 
 const DAY_MS = 86_400_000
 
@@ -23,7 +45,9 @@ export class WatchesController {
 
   @Post()
   async create(@Body() body: CreateWatchDto): Promise<WatchJson> {
-    return snapshotJson(await this.commands.create({ query: body.query, targetPiastres: egpToPiastres(body.targetEgp) }))
+    return snapshotJson(
+      await this.commands.create({ query: body.query, targetPiastres: egpToPiastres(body.targetEgp) }),
+    )
   }
 
   @Get(':id')

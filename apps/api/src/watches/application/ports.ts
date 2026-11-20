@@ -19,7 +19,14 @@ export interface ObservationRepository {
 
 export interface AlertRepository {
   /** Stores the alert unless one with the same key exists; true when this call stored it. */
-  tryAdd(alert: { id: string; key: string; watchId: string; pricePiastres: number; reasons: string[]; createdAt: Date }): Promise<boolean>
+  tryAdd(alert: {
+    id: string
+    key: string
+    watchId: string
+    pricePiastres: number
+    reasons: string[]
+    createdAt: Date
+  }): Promise<boolean>
 }
 
 /** Transactional outbox: events written in the same transaction as the state change, published later by a relay. */

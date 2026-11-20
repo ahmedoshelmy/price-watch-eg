@@ -21,12 +21,19 @@ class RecordingPublisher implements EventPublisher {
 
 const config = { searchDeadlineMs: 1234 } as CheckerConfig
 const clock = { now: () => new Date('2026-03-01T10:00:00Z') }
-const request = { checkId: 'c1', watchId: 'w1', query: 'kindle paperwhite', requestedAt: '2026-03-01T09:59:00Z' }
+const request = {
+  checkId: 'c1',
+  watchId: 'w1',
+  query: 'kindle paperwhite',
+  requestedAt: '2026-03-01T09:59:00Z',
+}
 
 describe('RunCheck (CheckRequested consumer)', () => {
   it('searches with the configured deadline and publishes what the shops returned', async () => {
     const scraper = new FakeScraper({
-      offers: [{ shop: 'noon', title: 'Kindle', pricePiastres: 870_000, url: 'https://example.com', inStock: true }],
+      offers: [
+        { shop: 'noon', title: 'Kindle', pricePiastres: 870_000, url: 'https://example.com', inStock: true },
+      ],
       shops: [
         { shop: 'noon', status: 'found' },
         { shop: 'jumia', status: 'failed', error: 'timed out' },
@@ -43,7 +50,9 @@ describe('RunCheck (CheckRequested consumer)', () => {
       watchId: 'w1',
       query: 'kindle paperwhite',
       observedAt: '2026-03-01T10:00:00.000Z',
-      offers: [{ shop: 'noon', title: 'Kindle', pricePiastres: 870_000, url: 'https://example.com', inStock: true }],
+      offers: [
+        { shop: 'noon', title: 'Kindle', pricePiastres: 870_000, url: 'https://example.com', inStock: true },
+      ],
       shops: [
         { shop: 'noon', status: 'found' },
         { shop: 'jumia', status: 'failed', error: 'timed out' },

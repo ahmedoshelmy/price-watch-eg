@@ -5,7 +5,10 @@
   "description": "Shared integration events and the scraper gRPC contract.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "proto"],
+  "files": [
+    "dist",
+    "proto"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"

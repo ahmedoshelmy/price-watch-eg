@@ -43,7 +43,8 @@ export class DemoSeeder implements OnApplicationBootstrap {
             shop,
             title: demo.query,
             // A gentle wave per shop: deterministic, no randomness, so screenshots are stable.
-            pricePiastres: Math.round(demo.baseEgp * (1 + 0.04 * Math.sin((day + s * 2 + i) / 3) + s * 0.01)) * 100,
+            pricePiastres:
+              Math.round(demo.baseEgp * (1 + 0.04 * Math.sin((day + s * 2 + i) / 3) + s * 0.01)) * 100,
             url: `https://example.com/${shop}/${encodeURIComponent(demo.query)}`,
             inStock: true,
           }))
@@ -71,7 +72,9 @@ export class DemoSeeder implements OnApplicationBootstrap {
             shops: s.shops,
           })
         }
-        await em.getRepository(WatchEntity).update({ id: watch.id }, { lastCheckedAt: watch.snapshot().lastCheckedAt })
+        await em
+          .getRepository(WatchEntity)
+          .update({ id: watch.id }, { lastCheckedAt: watch.snapshot().lastCheckedAt })
       }
     })
     this.logger.log(`Seeded ${DEMO.length} demo watches with 30 days of history`)

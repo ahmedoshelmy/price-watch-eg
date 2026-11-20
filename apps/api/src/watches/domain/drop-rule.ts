@@ -60,7 +60,8 @@ export function evaluateDrop(input: {
   const previous = recent.at(-1)
 
   const reasons: DropReason[] = []
-  if (price <= watch.targetPiastres && (!previous || price < previous.lowestPiastres)) reasons.push('below-target')
+  if (price <= watch.targetPiastres && (!previous || price < previous.lowestPiastres))
+    reasons.push('below-target')
   if (recent.length >= MIN_HISTORY_FOR_LOW && price < Math.min(...recent.map((h) => h.lowestPiastres))) {
     reasons.push('thirty-day-low')
   }

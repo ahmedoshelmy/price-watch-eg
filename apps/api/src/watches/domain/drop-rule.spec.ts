@@ -12,7 +12,8 @@ const offer = (shop: string, pricePiastres: number, inStock = true): Offer => ({
   url: `https://example.com/${shop}`,
   inStock,
 })
-const answered = (...shops: string[]): ShopOutcome[] => shops.map((shop) => ({ shop, status: 'found' as const }))
+const answered = (...shops: string[]): ShopOutcome[] =>
+  shops.map((shop) => ({ shop, status: 'found' as const }))
 
 function check(offers: Offer[], shops: ShopOutcome[] = answered('noon', 'jumia', 'btech')): Observation {
   return Observation.fromCheck({ id: 'o1', watchId: WATCH.id, checkId: 'c1', observedAt: AT, offers, shops })
@@ -24,17 +25,25 @@ const history = (...prices: number[]): PastLow[] =>
 describe('evaluateDrop', () => {
   describe('below target', () => {
     it('alerts on the first check that finds a price at or under the target', () => {
-      const decision = evaluateDrop({ watch: WATCH, observation: check([offer('noon', 95_000)]), history: [] })
+      const decision = evaluateDrop({
+        watch: WATCH,
+        observation: check([offer('noon', 95_000)]),
+        history: [],
+      })
       expect(decision?.reasons).toEqual(['below-target'])
       expect(decision?.offer.shop).toBe('noon')
     })
 
     it('treats a price exactly at the target as a hit', () => {
-      expect(evaluateDrop({ watch: WATCH, observation: check([offer('noon', 100_000)]), history: [] })).not.toBeNull()
+      expect(
+        evaluateDrop({ watch: WATCH, observation: check([offer('noon', 100_000)]), history: [] }),
+      ).not.toBeNull()
     })
 
     it('stays quiet while the price is above the target', () => {
-      expect(evaluateDrop({ watch: WATCH, observation: check([offer('noon', 100_001)]), history: [] })).toBeNull()
+      expect(
+        evaluateDrop({ watch: WATCH, observation: check([offer('noon', 100_001)]), history: [] }),
+      ).toBeNull()
     })
 
     it('alerts when the price crosses under the target', () => {
@@ -71,7 +80,9 @@ describe('evaluateDrop', () => {
     })
 
     it('never alerts when every offer is out of stock', () => {
-      expect(evaluateDrop({ watch: WATCH, observation: check([offer('noon', 50_000, false)]), history: [] })).toBeNull()
+      expect(
+        evaluateDrop({ watch: WATCH, observation: check([offer('noon', 50_000, false)]), history: [] }),
+      ).toBeNull()
     })
   })
 
@@ -89,7 +100,11 @@ describe('evaluateDrop', () => {
 
     it('needs at least three earlier checks before calling anything a 30-day low', () => {
       expect(
-        evaluateDrop({ watch: highTarget, observation: check([offer('noon', 100_000)]), history: history(120_000, 115_000) }),
+        evaluateDrop({
+          watch: highTarget,
+          observation: check([offer('noon', 100_000)]),
+          history: history(120_000, 115_000),
+        }),
       ).toBeNull()
     })
 
@@ -125,7 +140,10 @@ describe('evaluateDrop', () => {
 
   describe('unreliable checks', () => {
     it('does not alert when one shop failed and the others show no drop', () => {
-      const shops: ShopOutcome[] = [...answered('noon', 'btech'), { shop: 'jumia', status: 'failed', error: 'timed out' }]
+      const shops: ShopOutcome[] = [
+        ...answered('noon', 'btech'),
+        { shop: 'jumia', status: 'failed', error: 'timed out' },
+      ]
       const decision = evaluateDrop({
         watch: WATCH,
         observation: check([offer('noon', 95_000)], shops),
@@ -142,7 +160,9 @@ describe('evaluateDrop', () => {
       ]
       const observation = check([offer('noon', 1_000)], shops)
       expect(observation.healthy).toBe(false)
-      expect(evaluateDrop({ watch: WATCH, observation, history: history(120_000, 115_000, 118_000) })).toBeNull()
+      expect(
+        evaluateDrop({ watch: WATCH, observation, history: history(120_000, 115_000, 118_000) }),
+      ).toBeNull()
     })
 
     it('never alerts when more than half of the shops failed', () => {
@@ -152,12 +172,18 @@ describe('evaluateDrop', () => {
         { shop: 'amazon', status: 'failed' },
         { shop: 'raya', status: 'blocked' },
       ]
-      expect(evaluateDrop({ watch: WATCH, observation: check([offer('noon', 1_000)], shops), history: [] })).toBeNull()
+      expect(
+        evaluateDrop({ watch: WATCH, observation: check([offer('noon', 1_000)], shops), history: [] }),
+      ).toBeNull()
     })
 
     it('never alerts for a paused watch', () => {
       expect(
-        evaluateDrop({ watch: { ...WATCH, active: false }, observation: check([offer('noon', 1_000)]), history: [] }),
+        evaluateDrop({
+          watch: { ...WATCH, active: false },
+          observation: check([offer('noon', 1_000)]),
+          history: [],
+        }),
       ).toBeNull()
     })
   })

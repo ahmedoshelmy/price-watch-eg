@@ -29,7 +29,10 @@ describe('WatchCommands', () => {
 
   it('pauses, resumes and retargets', async () => {
     const { id } = await commands.create({ query: 'kindle', targetPiastres: 500_000 })
-    expect(await commands.update(id, { active: false, targetPiastres: 450_000 })).toMatchObject({ active: false, targetPiastres: 450_000 })
+    expect(await commands.update(id, { active: false, targetPiastres: 450_000 })).toMatchObject({
+      active: false,
+      targetPiastres: 450_000,
+    })
     expect(await commands.update(id, { active: true })).toMatchObject({ active: true })
   })
 

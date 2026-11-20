@@ -12,8 +12,17 @@ function observed(checkId: string, observedAt: string, prices: number[], failedS
     watchId: WATCH_ID,
     query: 'demo mouse',
     observedAt,
-    offers: prices.map((p, i) => ({ shop: shops[i] ?? 'amazon', title: 'Demo mouse', pricePiastres: p, url: 'https://example.com', inStock: true })),
-    shops: shops.map((shop, i) => ({ shop, status: i < failedShops ? ('failed' as const) : ('found' as const) })),
+    offers: prices.map((p, i) => ({
+      shop: shops[i] ?? 'amazon',
+      title: 'Demo mouse',
+      pricePiastres: p,
+      url: 'https://example.com',
+      inStock: true,
+    })),
+    shops: shops.map((shop, i) => ({
+      shop,
+      status: i < failedShops ? ('failed' as const) : ('found' as const),
+    })),
   }
 }
 
@@ -23,7 +32,12 @@ describe('RecordObservation', () => {
 
   beforeEach(() => {
     store = new InMemoryStore()
-    const watch = Watch.create({ id: WATCH_ID, query: 'demo mouse', targetPiastres: 100_000, now: new Date('2026-03-01T00:00:00Z') })
+    const watch = Watch.create({
+      id: WATCH_ID,
+      query: 'demo mouse',
+      targetPiastres: 100_000,
+      now: new Date('2026-03-01T00:00:00Z'),
+    })
     store.watches.set(WATCH_ID, watch.snapshot())
     useCase = new RecordObservation(store, sequentialIds())
   })
@@ -32,7 +46,12 @@ describe('RecordObservation', () => {
     expect(await useCase.execute(observed('c1', '2026-03-02T10:00:00Z', [95_000, 97_000]))).toBe('dropped')
     expect(store.observations[0]?.dropReasons).toEqual(['below-target'])
     expect(store.published('price.dropped')).toEqual([
-      expect.objectContaining({ watchId: WATCH_ID, pricePiastres: 95_000, shop: 'noon', reasons: ['below-target'] }),
+      expect.objectContaining({
+        watchId: WATCH_ID,
+        pricePiastres: 95_000,
+        shop: 'noon',
+        reasons: ['below-target'],
+      }),
     ])
     expect(store.watches.get(WATCH_ID)?.lastCheckedAt).toEqual(new Date('2026-03-02T10:00:00Z'))
   })

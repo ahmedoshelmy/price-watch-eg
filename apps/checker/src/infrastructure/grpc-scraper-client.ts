@@ -1,4 +1,10 @@
-import { credentials, loadPackageDefinition, Metadata, type ClientReadableStream, type ServiceError } from '@grpc/grpc-js'
+import {
+  credentials,
+  loadPackageDefinition,
+  Metadata,
+  type ClientReadableStream,
+  type ServiceError,
+} from '@grpc/grpc-js'
 import { loadSync } from '@grpc/proto-loader'
 import {
   PROTO_LOADER_OPTIONS,
@@ -12,7 +18,11 @@ import {
 import type { ScrapeResult, ScraperClient } from '../application/ports'
 
 interface ScraperStub {
-  search(request: SearchRequestMessage, metadata: Metadata, options: { deadline: Date }): ClientReadableStream<ShopResultMessage>
+  search(
+    request: SearchRequestMessage,
+    metadata: Metadata,
+    options: { deadline: Date },
+  ): ClientReadableStream<ShopResultMessage>
   close(): void
 }
 
@@ -34,7 +44,9 @@ export class GrpcScraperClient implements ScraperClient {
   private readonly stub: ScraperStub
 
   constructor(address: string) {
-    const definition = loadPackageDefinition(loadSync(SCRAPER_PROTO_PATH, PROTO_LOADER_OPTIONS)) as unknown as {
+    const definition = loadPackageDefinition(
+      loadSync(SCRAPER_PROTO_PATH, PROTO_LOADER_OPTIONS),
+    ) as unknown as {
       pricewatch: { scraper: { v1: { Scraper: ScraperCtor } } }
     }
     this.stub = new definition.pricewatch.scraper.v1.Scraper(address, credentials.createInsecure())
@@ -44,13 +56,21 @@ export class GrpcScraperClient implements ScraperClient {
     return new Promise((resolve) => {
       const offers: OfferDto[] = []
       const shops: ShopOutcomeDto[] = []
-      const call = this.stub.search({ query, shops: [] }, new Metadata(), { deadline: new Date(Date.now() + deadlineMs) })
+      const call = this.stub.search({ query, shops: [] }, new Metadata(), {
+        deadline: new Date(Date.now() + deadlineMs),
+      })
       call.on('data', (result: ShopResultMessage) => {
-        shops.push({ shop: result.shop, status: STATUS[result.status], ...(result.error ? { error: result.error } : {}) })
+        shops.push({
+          shop: result.shop,
+          status: STATUS[result.status],
+          ...(result.error ? { error: result.error } : {}),
+        })
         offers.push(...result.offers)
       })
       call.on('end', () => resolve({ offers, shops }))
-      call.on('error', (err: ServiceError) => resolve({ offers, shops, error: `${err.code}: ${err.details || err.message}` }))
+      call.on('error', (err: ServiceError) =>
+        resolve({ offers, shops, error: `${err.code}: ${err.details || err.message}` }),
+      )
     })
   }
 

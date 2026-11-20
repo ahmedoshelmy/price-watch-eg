@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
+} from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import type { RoutingKey } from '@price-watch/contracts'
 import { RabbitBus } from '@price-watch/platform'
@@ -49,11 +55,17 @@ export class OutboxRelay implements OnApplicationBootstrap, OnApplicationShutdow
         const sent: string[] = []
         for (const row of rows) {
           try {
-            await this.bus.publish(row.routing_key, row.payload, { messageId: row.id, traceHeaders: row.trace_headers })
+            await this.bus.publish(row.routing_key, row.payload, {
+              messageId: row.id,
+              traceHeaders: row.trace_headers,
+            })
             sent.push(row.id)
           } catch (err) {
             const message = err instanceof Error ? err.message : String(err)
-            await em.query(`UPDATE outbox SET attempts = attempts + 1, last_error = $2 WHERE id = $1`, [row.id, message])
+            await em.query(`UPDATE outbox SET attempts = attempts + 1, last_error = $2 WHERE id = $1`, [
+              row.id,
+              message,
+            ])
             this.logger.warn(`Outbox publish failed for ${row.id}: ${message}`)
             break
           }

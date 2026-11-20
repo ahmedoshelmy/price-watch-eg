@@ -23,7 +23,9 @@ class TypeOrmWatchRepository implements WatchRepository {
 
   async get(id: string): Promise<Watch | null> {
     // Row lock: concurrent observations of one watch serialise instead of racing on lastCheckedAt.
-    const row = await this.em.getRepository(WatchEntity).findOne({ where: { id }, lock: { mode: 'pessimistic_write' } })
+    const row = await this.em
+      .getRepository(WatchEntity)
+      .findOne({ where: { id }, lock: { mode: 'pessimistic_write' } })
     return row ? Watch.restore(row) : null
   }
 
@@ -55,7 +57,9 @@ class TypeOrmObservationRepository implements ObservationRepository {
       where: { watchId, healthy: true, observedAt: MoreThanOrEqual(since) },
       order: { observedAt: 'ASC' },
     })
-    return rows.flatMap((r) => (r.lowestPiastres === null ? [] : [{ observedAt: r.observedAt, lowestPiastres: r.lowestPiastres }]))
+    return rows.flatMap((r) =>
+      r.lowestPiastres === null ? [] : [{ observedAt: r.observedAt, lowestPiastres: r.lowestPiastres }],
+    )
   }
 
   async add(observation: Observation): Promise<void> {
@@ -83,7 +87,14 @@ class TypeOrmAlertRepository implements AlertRepository {
       .createQueryBuilder()
       .insert()
       .into(AlertEntity)
-      .values({ id: alert.id, alertKey: alert.key, watchId: alert.watchId, pricePiastres: alert.pricePiastres, reasons: alert.reasons, createdAt: alert.createdAt })
+      .values({
+        id: alert.id,
+        alertKey: alert.key,
+        watchId: alert.watchId,
+        pricePiastres: alert.pricePiastres,
+        reasons: alert.reasons,
+        createdAt: alert.createdAt,
+      })
       .orIgnore()
       .returning('id')
       .execute()

@@ -22,7 +22,9 @@ describe('Watch', () => {
   })
 
   it.each([0, -5, 1.5, 2_000_000_000])('rejects the target %p', (target) => {
-    expect(() => Watch.create({ id: 'w1', query: 'mouse', targetPiastres: target, now: NOW })).toThrow(DomainError)
+    expect(() => Watch.create({ id: 'w1', query: 'mouse', targetPiastres: target, now: NOW })).toThrow(
+      DomainError,
+    )
   })
 
   it('never moves the last check time backwards for a late result', () => {

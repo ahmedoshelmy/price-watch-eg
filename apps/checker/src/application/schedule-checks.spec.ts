@@ -27,8 +27,24 @@ describe('ScheduleChecks', () => {
     expect(count).toBe(2)
     expect(source.due).toHaveBeenCalledWith(3600, 100)
     expect(sent).toEqual([
-      { key: 'check.requested', payload: { checkId: 'check-1', watchId: 'w1', query: 'airpods pro 2', requestedAt: '2026-03-01T10:00:00.000Z' } },
-      { key: 'check.requested', payload: { checkId: 'check-2', watchId: 'w2', query: 'galaxy a55', requestedAt: '2026-03-01T10:00:00.000Z' } },
+      {
+        key: 'check.requested',
+        payload: {
+          checkId: 'check-1',
+          watchId: 'w1',
+          query: 'airpods pro 2',
+          requestedAt: '2026-03-01T10:00:00.000Z',
+        },
+      },
+      {
+        key: 'check.requested',
+        payload: {
+          checkId: 'check-2',
+          watchId: 'w2',
+          query: 'galaxy a55',
+          requestedAt: '2026-03-01T10:00:00.000Z',
+        },
+      },
     ])
   })
 })

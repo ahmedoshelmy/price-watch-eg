@@ -28,6 +28,8 @@ export class EventSubscriptions implements OnApplicationBootstrap {
       },
       { queue: OBSERVATIONS_QUEUE, prefetch: 8 },
     )
-    await this.bus.subscribe(['price.dropped'], async (event) => this.notifier.notify(event), { prefetch: 32 })
+    await this.bus.subscribe(['price.dropped'], async (event) => this.notifier.notify(event), {
+      prefetch: 32,
+    })
   }
 }

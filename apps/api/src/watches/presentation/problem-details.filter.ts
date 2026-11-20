@@ -1,4 +1,11 @@
-import { Catch, HttpException, HttpStatus, Logger, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common'
+import {
+  Catch,
+  HttpException,
+  HttpStatus,
+  Logger,
+  type ArgumentsHost,
+  type ExceptionFilter,
+} from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { DomainError, NotFoundError } from '../domain/errors'
 
@@ -12,7 +19,8 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     const response = http.getResponse<Response>()
     const request = http.getRequest<Request>()
     const { status, title, detail } = this.describe(error)
-    if (status >= 500) this.logger.error(error instanceof Error ? (error.stack ?? error.message) : String(error))
+    if (status >= 500)
+      this.logger.error(error instanceof Error ? (error.stack ?? error.message) : String(error))
     response
       .status(status)
       .type('application/problem+json')
@@ -24,9 +32,18 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     if (error instanceof NotFoundError) return { status: 404, title: 'Not Found', detail: error.message }
     if (error instanceof HttpException) {
       const body = error.getResponse()
-      const message = typeof body === 'object' && body !== null && 'message' in body ? body.message : error.message
-      return { status: error.getStatus(), title: error.name, detail: Array.isArray(message) ? message.join('; ') : String(message) }
+      const message =
+        typeof body === 'object' && body !== null && 'message' in body ? body.message : error.message
+      return {
+        status: error.getStatus(),
+        title: error.name,
+        detail: Array.isArray(message) ? message.join('; ') : String(message),
+      }
     }
-    return { status: HttpStatus.INTERNAL_SERVER_ERROR, title: 'Internal Server Error', detail: 'Unexpected error' }
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      title: 'Internal Server Error',
+      detail: 'Unexpected error',
+    }
   }
 }

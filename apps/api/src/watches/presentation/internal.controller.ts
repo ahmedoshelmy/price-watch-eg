@@ -16,6 +16,10 @@ export class InternalController {
     @Query('intervalSeconds', new DefaultValuePipe(1800), ParseIntPipe) intervalSeconds: number,
     @Query('limit', new DefaultValuePipe(100), ParseIntPipe) limit: number,
   ): Promise<DueWatch[]> {
-    return this.queries.due(this.clock.now(), Math.max(intervalSeconds, 1) * 1000, Math.min(Math.max(limit, 1), 500))
+    return this.queries.due(
+      this.clock.now(),
+      Math.max(intervalSeconds, 1) * 1000,
+      Math.min(Math.max(limit, 1), 500),
+    )
   }
 }

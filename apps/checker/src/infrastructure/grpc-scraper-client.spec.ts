@@ -1,6 +1,17 @@
-import { loadPackageDefinition, Server, ServerCredentials, type ServerWritableStream, type ServiceDefinition } from '@grpc/grpc-js'
+import {
+  loadPackageDefinition,
+  Server,
+  ServerCredentials,
+  type ServerWritableStream,
+  type ServiceDefinition,
+} from '@grpc/grpc-js'
 import { loadSync } from '@grpc/proto-loader'
-import { PROTO_LOADER_OPTIONS, SCRAPER_PROTO_PATH, type SearchRequestMessage, type ShopResultMessage } from '@price-watch/contracts'
+import {
+  PROTO_LOADER_OPTIONS,
+  SCRAPER_PROTO_PATH,
+  type SearchRequestMessage,
+  type ShopResultMessage,
+} from '@price-watch/contracts'
 import { GrpcScraperClient } from './grpc-scraper-client'
 
 /** In-process fake sidecar: answers two shops, then (for "slow" queries) never finishes. */
@@ -15,15 +26,20 @@ async function startFakeSidecar(): Promise<{ server: Server; port: number }> {
         shop: 'noon',
         status: 'SHOP_STATUS_FOUND',
         error: '',
-        offers: [{ shop: 'noon', title: 'Demo', pricePiastres: 99_900, url: 'https://example.com/n', inStock: true }],
+        offers: [
+          { shop: 'noon', title: 'Demo', pricePiastres: 99_900, url: 'https://example.com/n', inStock: true },
+        ],
       })
       call.write({ shop: 'jumia', status: 'SHOP_STATUS_BLOCKED', error: 'HTTP 403', offers: [] })
       if (call.request.query !== 'slow') call.end()
     },
-    health: (_: unknown, cb: (err: null, reply: { status: string; mode: string }) => void) => cb(null, { status: 'SERVING', mode: 'fake' }),
+    health: (_: unknown, cb: (err: null, reply: { status: string; mode: string }) => void) =>
+      cb(null, { status: 'SERVING', mode: 'fake' }),
   })
   const port = await new Promise<number>((resolve, reject) =>
-    server.bindAsync('127.0.0.1:0', ServerCredentials.createInsecure(), (err, p) => (err ? reject(err) : resolve(p))),
+    server.bindAsync('127.0.0.1:0', ServerCredentials.createInsecure(), (err, p) =>
+      err ? reject(err) : resolve(p),
+    ),
   )
   return { server, port }
 }
@@ -45,7 +61,9 @@ describe('GrpcScraperClient', () => {
 
   it('collects the streamed shop results into offers and outcomes', async () => {
     expect(await client.search('demo', 5000)).toEqual({
-      offers: [{ shop: 'noon', title: 'Demo', pricePiastres: 99_900, url: 'https://example.com/n', inStock: true }],
+      offers: [
+        { shop: 'noon', title: 'Demo', pricePiastres: 99_900, url: 'https://example.com/n', inStock: true },
+      ],
       shops: [
         { shop: 'noon', status: 'found' },
         { shop: 'jumia', status: 'blocked', error: 'HTTP 403' },

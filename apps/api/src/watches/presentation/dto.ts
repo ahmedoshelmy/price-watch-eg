@@ -70,7 +70,11 @@ export function watchJson(view: WatchView): WatchJson {
     createdAt: view.createdAt.toISOString(),
     lastCheckedAt: view.lastCheckedAt?.toISOString() ?? null,
     latest: view.latest
-      ? { observedAt: view.latest.observedAt.toISOString(), healthy: view.latest.healthy, lowest: offerJson(view.latest.lowest) }
+      ? {
+          observedAt: view.latest.observedAt.toISOString(),
+          healthy: view.latest.healthy,
+          lowest: offerJson(view.latest.lowest),
+        }
       : null,
     lowest30dEgp: view.lowest30dPiastres === null ? null : piastresToEgp(view.lowest30dPiastres),
   }

@@ -69,11 +69,17 @@ export class RabbitBus {
 
   private onClosed(err?: Error): void {
     if (this.closing) return
-    this.logger.error(`RabbitMQ connection closed${err ? `: ${err.message}` : ''}; exiting so the service restarts`)
+    this.logger.error(
+      `RabbitMQ connection closed${err ? `: ${err.message}` : ''}; exiting so the service restarts`,
+    )
     process.exit(1)
   }
 
-  async publish<K extends RoutingKey>(key: K, payload: EventMap[K], options: PublishOptions = {}): Promise<void> {
+  async publish<K extends RoutingKey>(
+    key: K,
+    payload: EventMap[K],
+    options: PublishOptions = {},
+  ): Promise<void> {
     const body = Buffer.from(JSON.stringify(payload))
     const send = (): void => {
       this.channel.publish(EXCHANGE, key, body, {

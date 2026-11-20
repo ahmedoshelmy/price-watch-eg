@@ -1,7 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import type { CheckRequested, PriceObserved } from '@price-watch/contracts'
 import { CHECKER_CONFIG, type CheckerConfig } from '../config'
-import { CLOCK, EVENT_PUBLISHER, SCRAPER_CLIENT, type Clock, type EventPublisher, type ScraperClient } from './ports'
+import {
+  CLOCK,
+  EVENT_PUBLISHER,
+  SCRAPER_CLIENT,
+  type Clock,
+  type EventPublisher,
+  type ScraperClient,
+} from './ports'
 
 /**
  * Handles one CheckRequested: searches the shops through the sidecar and publishes what it saw as PriceObserved.
@@ -22,7 +29,9 @@ export class RunCheck {
   async execute(request: CheckRequested): Promise<PriceObserved> {
     const result = await this.scraper.search(request.query, this.config.searchDeadlineMs)
     const shops =
-      result.shops.length > 0 ? result.shops : [{ shop: 'scraper', status: 'failed' as const, error: result.error ?? 'no shops answered' }]
+      result.shops.length > 0
+        ? result.shops
+        : [{ shop: 'scraper', status: 'failed' as const, error: result.error ?? 'no shops answered' }]
     if (result.error) this.logger.warn(`Search for "${request.query}" incomplete: ${result.error}`)
     const observed: PriceObserved = {
       checkId: request.checkId,
