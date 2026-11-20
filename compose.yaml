@@ -1,0 +1,148 @@
+name: price-watch-eg
+
+x-node-service: &node-service
+  restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        memory: 256m
+
+x-common-env: &common-env
+  RABBITMQ_URL: amqp://${RABBITMQ_USER:-pricewatch}:${RABBITMQ_PASSWORD:-pricewatch}@rabbitmq:5672
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: pricewatch
+      POSTGRES_USER: ${POSTGRES_USER:-pricewatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pricewatch}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d pricewatch']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-pricewatch}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-pricewatch}
+    volumes:
+      - rabbitdata:/var/lib/rabbitmq
+    healthcheck:
+      # Not rabbitmq-diagnostics: run as root before the broker is up, the CLI writes a root-owned Erlang cookie
+      # the broker then cannot read (rootless podman). The management listener opens only once the broker booted.
+      test: ['CMD-SHELL', 'wget -q --spider http://127.0.0.1:15672/ || exit 1']
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+
+  scraper:
+    <<: *node-service
+    build:
+      context: .
+      target: scraper
+      args: { APP: scraper }
+    image: price-watch-scraper
+    environment:
+      <<: *common-env
+      SCRAPER_MODE: ${SCRAPER_MODE:-fake}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3002/health/ready || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    <<: *node-service
+    build:
+      context: .
+      target: service
+      args: { APP: api }
+    image: price-watch-api
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${POSTGRES_USER:-pricewatch}:${POSTGRES_PASSWORD:-pricewatch}@postgres:5432/pricewatch
+      DEMO_DATA: ${DEMO_DATA:-false}
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health/ready || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  checker:
+    <<: *node-service
+    build:
+      context: .
+      target: service
+      args: { APP: checker }
+    image: price-watch-checker
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      api: { condition: service_healthy }
+      scraper: { condition: service_healthy }
+    environment:
+      <<: *common-env
+      API_URL: http://api:3000
+      SCRAPER_GRPC_URL: scraper:50051
+      CHECK_INTERVAL_SECONDS: ${CHECK_INTERVAL_SECONDS:-21600}
+      CHECKER_CONCURRENCY: ${CHECKER_CONCURRENCY:-4}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/health/ready || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: price-watch-web
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - '8085:8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8080/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+  # Traces: docker compose --profile obs up, with OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18890 (OTLP/HTTP).
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5
+    profiles: [obs]
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: 'true'
+    ports:
+      - '18888:18888'
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+volumes:
+  pgdata:
+  rabbitdata:
