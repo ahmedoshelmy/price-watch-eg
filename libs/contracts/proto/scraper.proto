@@ -1,0 +1,49 @@
+// Contract between the checker (client) and the scraper sidecar (server).
+// Additive changes only: never renumber or reuse a field.
+syntax = "proto3";
+
+package pricewatch.scraper.v1;
+
+service Scraper {
+  // Searches the shops for one product. Streams one ShopResult per shop as soon as that shop answers,
+  // so a slow shop never holds back the others and the caller's deadline still yields partial results.
+  rpc Search(SearchRequest) returns (stream ShopResult);
+  rpc Health(HealthRequest) returns (HealthReply);
+}
+
+message SearchRequest {
+  string query = 1;
+  // Shop ids to search; empty means every shop the sidecar knows.
+  repeated string shops = 2;
+}
+
+message Offer {
+  string shop = 1;
+  string title = 2;
+  // Price in EGP piastres (1 EGP = 100 piastres): integers avoid float drift across languages.
+  int64 price_piastres = 3;
+  string url = 4;
+  bool in_stock = 5;
+}
+
+enum ShopStatus {
+  SHOP_STATUS_UNSPECIFIED = 0;
+  SHOP_STATUS_FOUND = 1;
+  SHOP_STATUS_NONE = 2;
+  SHOP_STATUS_FAILED = 3;
+  SHOP_STATUS_BLOCKED = 4;
+}
+
+message ShopResult {
+  string shop = 1;
+  ShopStatus status = 2;
+  repeated Offer offers = 3;
+  string error = 4;
+}
+
+message HealthRequest {}
+
+message HealthReply {
+  string status = 1;
+  string mode = 2;
+}

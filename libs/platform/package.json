@@ -1,0 +1,38 @@
+{
+  "name": "@price-watch/platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cross-cutting plumbing shared by the Node services: OpenTelemetry bootstrap and the RabbitMQ bus.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/instrumentation-amqplib": "^0.72.0",
+    "@opentelemetry/instrumentation-grpc": "^0.301.2",
+    "@opentelemetry/instrumentation-http": "^0.301.2",
+    "@opentelemetry/instrumentation-nestjs-core": "^0.72.1",
+    "@opentelemetry/instrumentation-pg": "^0.78.0",
+    "@opentelemetry/resources": "^3.1.1",
+    "@opentelemetry/sdk-node": "^0.301.2",
+    "@opentelemetry/semantic-conventions": "^1.45.0",
+    "@price-watch/contracts": "*",
+    "amqplib": "^2.4.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry.d.ts",
+      "default": "./dist/telemetry.js"
+    }
+  }
+}
