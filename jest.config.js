@@ -24,7 +24,11 @@ const shared = {
 
 module.exports = {
   projects: [
-    { ...shared, displayName: 'unit', testMatch: ['<rootDir>/apps/*/src/**/*.spec.ts', '<rootDir>/libs/*/src/**/*.spec.ts'] },
+    {
+      ...shared,
+      displayName: 'unit',
+      testMatch: ['<rootDir>/apps/*/src/**/*.spec.ts', '<rootDir>/libs/*/src/**/*.spec.ts'],
+    },
     { ...shared, displayName: 'integration', testMatch: ['<rootDir>/tests/integration/**/*.int-spec.ts'] },
   ],
 }

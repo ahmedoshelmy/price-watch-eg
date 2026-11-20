@@ -3,7 +3,12 @@ import { PoliteCatalog } from './polite-catalog'
 import type { ShopCatalog } from './shop-catalog'
 
 const found: ShopResultMessage = { shop: 'noon', status: 'SHOP_STATUS_FOUND', offers: [], error: '' }
-const failed: ShopResultMessage = { shop: 'jumia', status: 'SHOP_STATUS_FAILED', offers: [], error: 'timed out' }
+const failed: ShopResultMessage = {
+  shop: 'jumia',
+  status: 'SHOP_STATUS_FAILED',
+  offers: [],
+  error: 'timed out',
+}
 
 class CountingCatalog implements ShopCatalog {
   readonly mode = 'fake' as const

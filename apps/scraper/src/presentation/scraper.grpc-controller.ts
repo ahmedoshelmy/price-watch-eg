@@ -16,7 +16,10 @@ export class ScraperGrpcController {
   search(request: SearchRequestMessage): Observable<ShopResultMessage> {
     const query = (request.query ?? '').trim()
     if (query.length < 2 || query.length > MAX_QUERY_LENGTH) {
-      throw new RpcException({ code: status.INVALID_ARGUMENT, message: `query must be 2-${MAX_QUERY_LENGTH} characters` })
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: `query must be 2-${MAX_QUERY_LENGTH} characters`,
+      })
     }
     return from(this.catalog.search(query, request.shops ?? []))
   }

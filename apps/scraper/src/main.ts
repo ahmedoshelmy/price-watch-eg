@@ -11,12 +11,20 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
-    options: { package: SCRAPER_PACKAGE, protoPath: SCRAPER_PROTO_PATH, url: config.grpcUrl, loader: PROTO_LOADER_OPTIONS },
+    options: {
+      package: SCRAPER_PACKAGE,
+      protoPath: SCRAPER_PROTO_PATH,
+      url: config.grpcUrl,
+      loader: PROTO_LOADER_OPTIONS,
+    },
   })
   app.enableShutdownHooks()
   await app.startAllMicroservices()
   await app.listen(config.httpPort)
-  Logger.log(`Scraper sidecar (${config.mode} mode): gRPC ${config.grpcUrl}, HTTP :${config.httpPort}`, 'Bootstrap')
+  Logger.log(
+    `Scraper sidecar (${config.mode} mode): gRPC ${config.grpcUrl}, HTTP :${config.httpPort}`,
+    'Bootstrap',
+  )
 }
 
 void bootstrap()

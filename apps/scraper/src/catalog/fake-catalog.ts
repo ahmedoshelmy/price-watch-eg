@@ -76,7 +76,8 @@ export class FakeCatalog implements ShopCatalog {
   ): ShopResultMessage {
     const h = stableHash(`${q}|${shop.id}|${day}`)
     // About one shop-day in twelve fails, like a real shop timing out.
-    if (h % 12 === 0) return { shop: shop.id, status: 'SHOP_STATUS_FAILED', offers: [], error: 'timed out (simulated)' }
+    if (h % 12 === 0)
+      return { shop: shop.id, status: 'SHOP_STATUS_FAILED', offers: [], error: 'timed out (simulated)' }
     const swing = ((h % 13) - 6) / 100
     const price = Math.round(baseEgp * (1 + shop.markup + swing))
     const slug = q.replace(/[^a-z0-9]+/g, '-')

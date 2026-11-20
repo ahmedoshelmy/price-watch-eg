@@ -41,7 +41,11 @@ describe('Scraper gRPC service (contract)', () => {
     await app.listen()
     const definition = loadPackageDefinition(loadSync(SCRAPER_PROTO_PATH, PROTO_LOADER_OPTIONS))
     const pkg = definition.pricewatch as unknown as {
-      scraper: { v1: { Scraper: new (url: string, creds: ReturnType<typeof credentials.createInsecure>) => ScraperStub } }
+      scraper: {
+        v1: {
+          Scraper: new (url: string, creds: ReturnType<typeof credentials.createInsecure>) => ScraperStub
+        }
+      }
     }
     client = new pkg.scraper.v1.Scraper(`127.0.0.1:${port}`, credentials.createInsecure())
   })
@@ -62,7 +66,13 @@ describe('Scraper gRPC service (contract)', () => {
     expect(results).toHaveLength(6)
     const sample = results.find((r) => r.offers.length > 0)
     expect(Object.keys(sample ?? {}).sort()).toEqual(['error', 'offers', 'shop', 'status'])
-    expect(Object.keys(sample?.offers[0] ?? {}).sort()).toEqual(['inStock', 'pricePiastres', 'shop', 'title', 'url'])
+    expect(Object.keys(sample?.offers[0] ?? {}).sort()).toEqual([
+      'inStock',
+      'pricePiastres',
+      'shop',
+      'title',
+      'url',
+    ])
     expect(typeof sample?.offers[0]?.pricePiastres).toBe('number')
   })
 
