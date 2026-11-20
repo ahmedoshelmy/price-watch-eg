@@ -2,6 +2,7 @@ import type { EventMap, PriceDropped, RoutingKey } from '@price-watch/contracts'
 import type { PastLow } from '../domain/drop-rule'
 import type { Observation } from '../domain/observation'
 import type { Watch } from '../domain/watch'
+import type { DueWatch } from './read-models'
 
 export interface WatchRepository {
   get(id: string): Promise<Watch | null>
@@ -57,6 +58,16 @@ export const UNIT_OF_WORK = Symbol('UnitOfWork')
 export const CLOCK = Symbol('Clock')
 export const ID_GENERATOR = Symbol('IdGenerator')
 export const WATCH_QUERIES = Symbol('WatchQueries')
+
+/**
+ * Hands out due watches to schedulers as short leases: a claimed watch is not handed out again until it has been
+ * checked or `leaseMs` has passed, so several checker replicas never request the same check twice.
+ */
+export interface DueWatchClaims {
+  claim(now: Date, leaseMs: number, limit: number): Promise<DueWatch[]>
+}
+
+export const DUE_WATCH_CLAIMS = Symbol('DueWatchClaims')
 
 /** Tells connected clients about a drop right away (WebSocket gateway in production). */
 export interface DropNotifier {

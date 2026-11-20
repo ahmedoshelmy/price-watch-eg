@@ -9,6 +9,8 @@ import { RabbitMQContainer, type StartedRabbitMQContainer } from '@testcontainer
 import { io, type Socket } from 'socket.io-client'
 import request from 'supertest'
 import type { AddressInfo } from 'node:net'
+import { randomUUID } from 'node:crypto'
+import type { DataSource } from 'typeorm'
 import {
   PROTO_LOADER_OPTIONS,
   SCRAPER_PACKAGE,
@@ -18,6 +20,7 @@ import {
 } from '@price-watch/contracts'
 import { RabbitBus } from '@price-watch/platform'
 import { configureApp } from '../../apps/api/src/bootstrap'
+import { DATA_SOURCE } from '../../apps/api/src/watches/infrastructure/persistence/typeorm-unit-of-work'
 import { AppModule as CheckerModule } from '../../apps/checker/src/app.module'
 import { FakeCatalog } from '../../apps/scraper/src/catalog/fake-catalog'
 import { SHOP_CATALOG } from '../../apps/scraper/src/catalog/shop-catalog'
@@ -195,5 +198,33 @@ describe('Price Watch main flow (Postgres + RabbitMQ)', () => {
       .expect(400)
     expect(response.headers['content-type']).toContain('application/problem+json')
     expect(response.body).toMatchObject({ status: 400, title: expect.any(String) })
+  })
+
+  it('hands each due watch to exactly one of several concurrent schedulers', async () => {
+    const db = api.get<DataSource>(DATA_SOURCE)
+    const ids: string[] = [randomUUID(), randomUUID(), randomUUID(), randomUUID()]
+    for (const id of ids) {
+      await db.query(
+        `INSERT INTO watches (id, query, target_piastres, active, created_at, last_checked_at)
+         VALUES ($1, 'Demo product', 100000, true, now(), now() - interval '2 days')`,
+        [id],
+      )
+    }
+    const claim = async () =>
+      (
+        (
+          await request(api.getHttpServer())
+            .post('/internal/due-watches/claim?intervalSeconds=86400')
+            .expect(200)
+        ).body as Array<{ watchId: string }>
+      ).map((w) => w.watchId)
+
+    const [a, b] = await Promise.all([claim(), claim()])
+    const ours = (claimed: string[]) => claimed.filter((id) => ids.includes(id))
+    expect([...ours(a), ...ours(b)].sort()).toEqual([...ids].sort())
+    expect(ours(a).filter((id) => ours(b).includes(id))).toEqual([])
+    expect(ours(await claim())).toEqual([])
+
+    await db.query(`DELETE FROM watches WHERE id = ANY($1)`, [ids])
   })
 })

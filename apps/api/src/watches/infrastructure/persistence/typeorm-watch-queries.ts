@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DataSource } from 'typeorm'
-import type { DueWatch, HistoryPoint, WatchQueries, WatchView } from '../../application/read-models'
+import type { HistoryPoint, WatchQueries, WatchView } from '../../application/read-models'
 import type { DropReason } from '../../domain/drop-rule'
 import type { Offer, ShopOutcome } from '../../domain/observation'
 import { DATA_SOURCE } from './typeorm-unit-of-work'
@@ -81,15 +81,5 @@ export class TypeOrmWatchQueries implements WatchQueries {
       dropReasons: r.drop_reasons,
       shops: r.shops,
     }))
-  }
-
-  async due(now: Date, intervalMs: number, limit: number): Promise<DueWatch[]> {
-    const rows: Array<{ id: string; query: string }> = await this.db.query(
-      `SELECT id, query FROM watches
-        WHERE active AND (last_checked_at IS NULL OR last_checked_at <= $1)
-        ORDER BY last_checked_at NULLS FIRST LIMIT $2`,
-      [new Date(now.getTime() - intervalMs), limit],
-    )
-    return rows.map((r) => ({ watchId: r.id, query: r.query }))
   }
 }

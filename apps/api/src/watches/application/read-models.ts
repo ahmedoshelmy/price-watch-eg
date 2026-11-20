@@ -32,5 +32,4 @@ export interface WatchQueries {
   list(): Promise<WatchView[]>
   get(id: string): Promise<WatchView | null>
   history(watchId: string, since: Date): Promise<HistoryPoint[]>
-  due(now: Date, intervalMs: number, limit: number): Promise<DueWatch[]>
 }
