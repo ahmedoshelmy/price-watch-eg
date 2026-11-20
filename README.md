@@ -32,7 +32,7 @@ flowchart LR
   end
   R -- CheckRequested / PriceDropped --> MQ[(RabbitMQ<br/>topic exchange)]
   MQ -- CheckRequested --> CHK[checker - NestJS worker<br/>scheduler + consumer]
-  CHK -- GET /internal/due-watches --> API
+  CHK -- POST /internal/due-watches/claim --> API
   CHK -- gRPC Search, stream per shop, deadline --> SC[scraper - NestJS gRPC<br/>egypt-price-scraper]
   CHK -- PriceObserved --> MQ
   MQ -- PriceObserved --> API
@@ -48,8 +48,9 @@ The main flow:
 4. The API stores the observation, runs the **drop rule**, and, if it fires and the alert key is new, stores the
    alert plus `PriceDropped` in the same transaction.
 5. `PriceDropped` fans out to every API replica, which pushes it to browsers over socket.io.
-6. Every minute the checker's scheduler asks the API for watches not checked within `CHECK_INTERVAL_SECONDS` and
-   requests checks for them.
+6. Every minute the checker's scheduler claims the watches not checked within `CHECK_INTERVAL_SECONDS` and
+   requests checks for them. A claim is a lease (`UPDATE ... FOR UPDATE SKIP LOCKED RETURNING`), so any number of
+   checker replicas can run the scheduler without requesting the same check twice.
 
 | Path | What |
 |---|---|
@@ -70,7 +71,7 @@ Needs Docker (or Podman with the Docker CLI) and nothing else.
 cp .env.example .env              # optional: every value has a local default
 docker compose up -d --build --wait
 ./scripts/smoke.sh                # health checks + add a watch -> check -> drop flagged
-open http://localhost:8085        # the web app
+# then open http://localhost:8085 for the web app
 docker compose down -v
 ```
 
@@ -107,13 +108,13 @@ Run a service against the compose infrastructure with its env vars (see `.env.ex
 | `DELETE` | `/api/watches/{id}` | Remove with its history |
 | `POST` | `/api/watches/{id}/check` | Check now (202) |
 | `GET` | `/api/watches/{id}/history?days=30` | Every check: lowest offer, healthy flag, drop reasons, shop outcomes |
-| `GET` | `/internal/due-watches` | For the checker's scheduler (not proxied by the web server) |
+| `POST` | `/internal/due-watches/claim?intervalSeconds=&limit=` | The checker's scheduler claims due watches as leases (not proxied by the web server) |
 | WS | `/prices` (socket.io) | `price-dropped` events |
 | `GET` | `/health/live`, `/health/ready` | Probes (api, checker, scraper) |
 
 Errors are RFC 9457 `application/problem+json`. REST speaks EGP; inside, money is integer piastres.
 
-## Design notes (talking points)
+## Interview talking points (design notes)
 
 - **Why a gRPC sidecar instead of porting the scraper** (ADR 0002): reuse a tested library, scale and fail it
   independently, stream one result per shop so a deadline still yields partial data, and propagate deadlines and
@@ -135,6 +136,9 @@ Errors are RFC 9457 `application/problem+json`. REST speaks EGP; inside, money i
   infrastructure in the Testcontainers test.
 - **One trace across three services**: OpenTelemetry instrumentations for HTTP, amqplib, gRPC, pg and Nest; the
   outbox row stores `traceparent` so a message published seconds later still joins the request's trace.
+- **Schedulers that scale out**: instead of electing one scheduler, the API hands out due watches as leases in one
+  statement (`FOR UPDATE SKIP LOCKED` + a `check_requested_at` stamp). Two checkers asking at the same moment get
+  disjoint batches (an integration test fires two claims at once), and a lost check is retried when the lease ends.
 - **Failure modes**: losing RabbitMQ exits the process (the orchestrator restarts it; durable queues and the outbox
   keep every message); a down scraper yields a failed, recorded check rather than a stuck queue.
 
@@ -144,8 +148,6 @@ Working: everything in the main flow above, in fake and live mode, with unit, co
 
 Known gaps and next steps:
 
-- One scheduler per deployment is assumed; several checker replicas would request duplicate checks (harmless thanks
-  to idempotency, but wasteful). Next: a Postgres advisory lock or let the API own scheduling.
 - No per-shop circuit breaker with backoff state yet; no outbox retention job.
 - No authentication: it is a single-user tool for now.
 - Stretch ideas: B.TECH branch stock, Telegram/email notifier consumer, shareable watch links, Azure Container Apps
