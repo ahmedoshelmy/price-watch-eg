@@ -1,5 +1,12 @@
 # Price Watch EG
 
+[![CI](https://github.com/ahmedoshelmy/price-watch-eg/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedoshelmy/price-watch-eg/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NestJS](https://img.shields.io/badge/NestJS-TypeScript-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![gRPC + RabbitMQ](https://img.shields.io/badge/gRPC-RabbitMQ-555)](https://grpc.io/)
+
+Part of the [systems portfolio](https://github.com/ahmedoshelmy/systems-portfolio).
+
 Watch a product across Egyptian online shops, keep its price history, and get told **live** when the lowest
 in-stock offer drops under your target or hits a 30-day low.
 
