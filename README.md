@@ -14,6 +14,8 @@ Add "Logitech G102" with a target of 900 EGP. Price Watch searches the shops on 
 (including the shops that failed), draws the 30-day history, links the cheapest offer, and pushes a toast to every
 open browser the moment a real drop happens, once per price per day.
 
+![Price Watch EG: three watched products with the cheapest in-stock offer, the 30-day low and the price history (synthetic demo data)](docs/screenshot.png)
+
 ## What it shows
 
 - **Polyglot-ready contract-first gRPC**: a scraper sidecar behind `scraper.proto` with server streaming and deadlines.
