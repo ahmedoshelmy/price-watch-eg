@@ -1,0 +1,21 @@
+{
+  "name": "Price Watch EG",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": { "cpus": 4, "memory": "8gb" },
+  "forwardPorts": [8085, 3000, 18888],
+  "portsAttributes": {
+    "8085": { "label": "Web", "onAutoForward": "openBrowser" },
+    "3000": { "label": "API" },
+    "18888": { "label": "Aspire dashboard (--profile obs)" }
+  },
+  "otherPortsAttributes": { "onAutoForward": "silent" },
+  "postCreateCommand": "npm ci",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "ms-azuretools.vscode-docker"]
+    }
+  }
+}

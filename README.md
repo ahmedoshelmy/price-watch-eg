@@ -70,6 +70,20 @@ The main flow:
 | `tests/integration` | Testcontainers end-to-end test |
 | `docs/adr` | Architecture decision records |
 
+## Run in Codespaces
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ahmedoshelmy/price-watch-eg)
+
+The repo carries a dev container (`.devcontainer/`: Node 22 + TypeScript, Docker-in-Docker), so it opens as-is in
+GitHub Codespaces or VS Code Dev Containers and runs `npm ci` on create. Then one command:
+
+```bash
+docker compose up -d --build --wait
+```
+
+Open the **Web** port (8085) from the Ports tab; the API is forwarded on 3000. Prefix the command with
+`DEMO_DATA=true` for three demo watches with 30 days of history.
+
 ## Quickstart
 
 Needs Docker (or Podman with the Docker CLI) and nothing else.
