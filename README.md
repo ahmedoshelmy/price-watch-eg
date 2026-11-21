@@ -104,7 +104,8 @@ watches with 30 days of synthetic history. `SCRAPER_MODE=live` searches the real
 [`egypt-price-scraper`](https://github.com/ahmedoshelmy/egypt-price-scraper) (the image builds it from a pinned commit).
 
 Tracing: `docker compose --profile obs up -d` and set `OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18890`;
-traces appear at http://localhost:18888.
+traces appear at http://localhost:18888. The port is 18890 (the dashboard's OTLP/HTTP endpoint), not the 18889
+(OTLP/gRPC) used by the .NET siblings, because the Node OpenTelemetry SDK exports over HTTP/protobuf by default.
 
 ### Local development
 
@@ -117,8 +118,21 @@ npm run test:integration   # needs Docker: Testcontainers Postgres + RabbitMQ
 npm run build
 ```
 
-Run a service against the compose infrastructure with its env vars (see `.env.example`), for example
-`DATABASE_URL=... RABBITMQ_URL=... npm run start -w @price-watch/api` after `npm run build`.
+Compose keeps Postgres and RabbitMQ on its internal network (only the API on 3000 and the web app on 8085 are
+published), so for services run on the host start both with published ports and the credentials from the
+commented block at the end of `.env.example`:
+
+```bash
+docker run -d --name pricewatch-pg -p 5432:5432 \
+  -e POSTGRES_DB=pricewatch -e POSTGRES_USER=pricewatch -e POSTGRES_PASSWORD=change-me postgres:17-alpine
+docker run -d --name pricewatch-mq -p 5672:5672 -p 15672:15672 \
+  -e RABBITMQ_DEFAULT_USER=pricewatch -e RABBITMQ_DEFAULT_PASS=change-me rabbitmq:4-management-alpine
+npm run build
+export DATABASE_URL=postgres://pricewatch:change-me@localhost:5432/pricewatch
+export RABBITMQ_URL=amqp://pricewatch:change-me@localhost:5672
+export API_URL=http://localhost:3000 SCRAPER_GRPC_URL=localhost:50051
+npm run start -w @price-watch/api      # likewise -w @price-watch/scraper and -w @price-watch/checker
+```
 
 ## API
 
